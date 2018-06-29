@@ -3,7 +3,7 @@
 class ModelExtensionPaymentMokaPayment extends Model {
 
     public function getMethod($address, $total) {
-        $this->load->language('payment/moka_payment');
+        $this->load->language('extension/payment/moka_payment');
 
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "zone_to_geo_zone WHERE geo_zone_id = '" . (int) $this->config->get('moka_payment_geo_zone_id') . "' AND country_id = '" . (int) $address['country_id'] . "' AND (zone_id = '" . (int) $address['zone_id'] . "' OR zone_id = '0')");
 
