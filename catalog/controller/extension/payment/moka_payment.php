@@ -52,7 +52,7 @@ class ControllerExtensionPaymentMokaPayment extends Controller {
 
             $hashValue = $_POST['hashValue'];
             $HashSession = SHA256($this->session->data['CodeForHash']+"T");
-            if ($hashValue = $HashSession) {
+            if ($hashValue == $HashSession) {
                 $record['result'] = true;
             } else {
                 $record['result'] = false;
