@@ -28,12 +28,9 @@ class ControllerExtensionPaymentMokaPayment extends Controller {
 
         $data['validform'] = $validform;
 
-
-
         $order_id = $this->session->data['order_id'];
         $unique_conversation_id = uniqid($this->order_prefix) . "_" . $order_id;
-        if (!isset($this->session->data['order_id']) OR ! $this->session->data['order_id'])
-            die('Sipariş ID bulunamadı');
+
         if (!isset($this->session->data['order_id']) OR ! $this->session->data['order_id']) {
             die('Sipariş ID bulunamadı');
         }
@@ -48,10 +45,19 @@ class ControllerExtensionPaymentMokaPayment extends Controller {
             $record = $this->PostMokaForm();
         }
 
-        if (isset($_POST['isSuccessful']) AND $_POST['isSuccessful']) {
+
+        if (isset($_POST['hashValue'])) {
             $record['result_code'] = $_POST['resultCode'];
             $record['result_message'] = $_POST['resultMessage'];
-            $record['result'] = $_POST['isSuccessful'] == 'True' ? true : false;
+
+            $hashValue = $_POST['hashValue'];
+            $HashSession = SHA256($this->session->data['CodeForHash']+"T");
+            if ($hashValue = $HashSession) {
+                $record['result'] = true;
+            } else {
+                $record['result'] = false;
+            }
+
         }
 
 
@@ -189,7 +195,8 @@ class ControllerExtensionPaymentMokaPayment extends Controller {
             'InstallmentNumber' => (string) $installement,
             'OtherTrxCode' => (string) $orderid,
             'ClientIP' => $order_info['ip'],
-            'Software' => 'Opencart-156',
+            'Software' => 'Opencart-23',
+	    'ReturnHash' => 1,
             'RedirectUrl' => $this->url->link('extension/payment/moka_payment', '', 'SSL')
         );
 
@@ -221,8 +228,11 @@ class ControllerExtensionPaymentMokaPayment extends Controller {
         }
 
         if (isset($result->ResultCode) AND $result->ResultCode == "Success") {
-            if ($moka_3d_mode != 'OFF')
-                header("Location:" . $result->Data);
+            if ($moka_3d_mode != 'OFF') {
+                $this->session->data['CodeForHash'] = $result->Data->CodeForHash;
+                header("Location:" . $result->Data->Url);
+            }
+
             if (isset($result->Data->IsSuccessful) AND $result->Data->IsSuccessful) {
                 $record['result_code'] = '99';
                 $record['result_message'] = $result->ResultCode;
